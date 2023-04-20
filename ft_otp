@@ -13,12 +13,15 @@
 
 import os
 import argparse
+import pyotp
 import base64
 import time
 from datetime import datetime, timezone
 import hmac
 import hashlib
-import struct
+from cryptography.fernet import Fernet
+
+secret = b'gwNniJtfJ9JVF4YF1gJCj-nN4Xzd3WDQEkVTekBMdAI='
 
 def is_hex(text):
     try:
@@ -26,6 +29,24 @@ def is_hex(text):
         return True
     except ValueError:
         return False
+
+def pyotp_value(key_given):
+    with open(key_given, "rb") as f:
+        key = f.read()
+    key_dec = decrypt_key(key)
+    key_b32 = (base64.b32encode(key_dec)).decode('utf-8')
+    totp = pyotp.TOTP(key_b32, interval=30, digits=6)
+    print(f"pyotp:  {totp.now()}")
+
+def encrypt_key(key):
+    fernet = Fernet(secret)
+    key_enc = fernet.encrypt(key)
+    return key_enc
+
+def decrypt_key(key_enc):
+    fernet = Fernet(secret)
+    key_dec = fernet.decrypt(key_enc)
+    return key_dec
 
 class Otp:
     def __init__(self,args):
@@ -38,29 +59,37 @@ class Otp:
         except:
             raise Exception("Invalid Key")
         else:
-            #if is_hex(key) and len(key) >= 64:
+            if is_hex(key) and len(key) >= 64:
+                key_enc = encrypt_key(key)
                 try:
-                    otp_key = open("ft_otp.key", "wb")
-                    otp_key.write(key)
-                    otp_key.close()
+                    with open("ft_otp.key", "wb") as otp_key:
+                        otp_key.write(key_enc)
                     print("Key was successfully saved in ft_otp.key.")
                 except:
                     raise Exception("Key could not be saved")
-            #else:
-            #    raise Exception("Key must be 64 hexadecimal characters")
+            else:
+                raise Exception("Key must be 64 hexadecimal characters")
 
     def generate_password(self):
+        with open(self.otp_key, "rb") as f:
+            try:
+                key_enc = f.read()
+            except:
+                Exception("Key not found")
+            else:
+                key_dec = decrypt_key(key_enc)
         counter = (int(time.time() / 30))
         counter_bytes = counter.to_bytes(8, byteorder="big")
-        key_bytes = open(self.otp_key, "rb").read()
-        hmac_sha1 = hmac.new(key_bytes, counter_bytes, hashlib.sha1).digest()
-        
+        hmac_sha1 = hmac.new(key_dec, counter_bytes, hashlib.sha1).digest()
         offset = hmac_sha1[-1] & 0x0F
         otp_bytes = hmac_sha1[offset:offset+4]
         otp_int = int.from_bytes(otp_bytes, byteorder="big") + 0x7FFFFFFF
+        otp_int = ((hmac_sha1[offset]  & 0x7f) << 24 |
+            (hmac_sha1[offset+1] & 0xff) << 16 | 
+            (hmac_sha1[offset+2] & 0xff) <<  8 | 
+            (hmac_sha1[offset+3] & 0xff))
         otp = str(otp_int % (10 ** 6))
-    
-        print(otp)
+        print(f"ft_otp: {otp}")
 
 
 def parse_arguments():
@@ -77,3 +106,4 @@ if __name__ == "__main__":
         otp.save_key()
     if otp.otp_key:
         otp.generate_password()
+        pyotp_value(otp.otp_key)
