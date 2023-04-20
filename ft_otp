@@ -22,6 +22,7 @@ import hmac
 import hashlib
 import getpass
 from cryptography.fernet import Fernet
+import qrcode
 
 def is_hex(text):
     try:
@@ -35,6 +36,8 @@ def pyotp_value(key_given, passw):
         key = f.read()
     key_dec = decrypt_key(key, passw)
     key_b32 = (base64.b32encode(key_dec)).decode('utf-8')
+    img = qrcode.make("key_b32")
+    img.save('MyQRCode.png')
     totp = pyotp.TOTP(key_b32, interval=30, digits=6)
     print(f"pyotp:  {totp.now()}")
 
