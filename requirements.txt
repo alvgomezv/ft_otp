@@ -3,7 +3,7 @@
 # platform: osx-64
 @EXPLICIT
 https://repo.anaconda.com/pkgs/main/osx-64/blas-1.0-mkl.conda
-https://repo.anaconda.com/pkgs/main/osx-64/ca-certificates-2023.01.10-hecd8cb5_0.conda
+https://conda.anaconda.org/conda-forge/osx-64/ca-certificates-2022.12.7-h033912b_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/giflib-5.2.1-h6c40b1e_3.conda
 https://repo.anaconda.com/pkgs/main/osx-64/intel-openmp-2021.4.0-hecd8cb5_3538.conda
 https://repo.anaconda.com/pkgs/main/osx-64/jpeg-9e-h6c40b1e_1.conda
@@ -25,7 +25,7 @@ https://repo.anaconda.com/pkgs/main/osx-64/libpng-1.6.39-h6c40b1e_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/lz4-c-1.9.4-hcec6c5f_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/mkl-2021.4.0-hecd8cb5_637.conda
 https://repo.anaconda.com/pkgs/main/osx-64/nspr-4.33-he9d5cce_0.conda
-https://repo.anaconda.com/pkgs/main/osx-64/openssl-1.1.1t-hca72f7f_0.conda
+https://conda.anaconda.org/conda-forge/osx-64/openssl-1.1.1t-hfd90126_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/pcre-8.45-h23ab428_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/readline-8.2-hca72f7f_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/tk-8.6.12-h5d9f67b_0.conda
@@ -45,7 +45,7 @@ https://repo.anaconda.com/pkgs/main/osx-64/python-3.7.16-h218abb5_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/appnope-0.1.2-py37hecd8cb5_1001.conda
 https://repo.anaconda.com/pkgs/main/osx-64/attrs-22.1.0-py37hecd8cb5_0.conda
 https://repo.anaconda.com/pkgs/main/noarch/backcall-0.2.0-pyhd3eb1b0_0.tar.bz2
-https://repo.anaconda.com/pkgs/main/osx-64/certifi-2022.12.7-py37hecd8cb5_0.conda
+https://conda.anaconda.org/conda-forge/noarch/certifi-2022.12.7-pyhd8ed1ab_0.conda
 https://repo.anaconda.com/pkgs/main/noarch/charset-normalizer-2.0.4-pyhd3eb1b0_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/debugpy-1.5.1-py37he9d5cce_0.conda
 https://repo.anaconda.com/pkgs/main/noarch/decorator-5.1.1-pyhd3eb1b0_0.conda
@@ -73,7 +73,9 @@ https://repo.anaconda.com/pkgs/main/noarch/ptyprocess-0.7.0-pyhd3eb1b0_2.conda
 https://repo.anaconda.com/pkgs/main/osx-64/pycodestyle-2.10.0-py37hecd8cb5_0.conda
 https://repo.anaconda.com/pkgs/main/noarch/pycparser-2.21-pyhd3eb1b0_0.conda
 https://repo.anaconda.com/pkgs/main/noarch/pygments-2.11.2-pyhd3eb1b0_0.conda
+https://conda.anaconda.org/conda-forge/noarch/pyotp-2.6.0-pyh44b312d_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/osx-64/pyrsistent-0.18.0-py37hca72f7f_0.conda
+https://conda.anaconda.org/conda-forge/noarch/pysimplegui-4.60.4-pyhd8ed1ab_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/osx-64/pysocks-1.7.1-py37hecd8cb5_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/python-fastjsonschema-2.16.2-py37hecd8cb5_0.conda
 https://repo.anaconda.com/pkgs/main/osx-64/pytz-2022.7-py37hecd8cb5_0.conda
