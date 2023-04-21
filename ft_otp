@@ -24,6 +24,67 @@ import getpass
 from cryptography.fernet import Fernet
 import qrcode
 
+img = qrcode.make("")
+
+sg.theme('DarkBrown')   # Add a touch of color
+# All the stuff inside your window.
+
+left_col_1 = [[sg.Text('Save key from file', font = ("italic",25), text_color = "white")],
+            [sg.Text(pad=(0,5))],
+            [sg.Text('Input Hex-Key File:', font = ("italic",18))], 
+            [sg.InputText(key='hex_key', size=(35,1), font = ("italic",18))],
+            [sg.Push(),sg.FileBrowse(font = ("italic",18), target=(-1,0))],
+            [sg.Text('Create Password for Encryption:', font = ("italic",18))], 
+            [sg.InputText(key='passw_enc', size=(35,1), font = ("italic",18), password_char = "*")],
+            [sg.Text(pad=(0,3))],
+            [sg.Button('Save Key', font = ("italic",20), size=10)],
+            [sg.Text('', key='save_key_result', font = ("italic",18), visible=False)] 
+           ]
+
+right_col_1 = [[sg.Text('Generate one time password', font = ("italic",25), text_color = "white")],
+            [sg.Text(pad=(0,5))],
+            [sg.Text('Input Otp-Key File:', font = ("italic",18))], 
+            [sg.In(key='otp_key', size=(35,1), font = ("italic",18))], 
+            [sg.Push(), sg.FileBrowse(font = ("italic",18), target=(-1,0))],
+            [sg.Text('Issuer Name:', font = ("italic",18))], 
+            [sg.InputText(key='name', size=(35,1), font = ("italic",18))],
+            [sg.Text(pad=(0,3))],
+            [sg.Text('Account Name:', font = ("italic",18))], 
+            [sg.InputText(key='account', size=(35,1), font = ("italic",18))],
+            [sg.Text(pad=(0,3))],
+            [sg.Text('Key Decryption Password:', font = ("italic",18))], 
+            [sg.InputText(key='passw_dec', size=(35,1), font = ("italic",18), password_char = "*")],
+            [sg.Text(pad=(0,3))],
+            [sg.Button('Create Token', font = ("italic",20), size=10)],
+            [sg.Text('', key='generate_token_result', font = ("italic",18), visible=False)]
+            ]
+
+left_col_2 = [[sg.Text('QR Code:', font = ("italic",18))],
+            [sg.Image(size=(300,300), filename='white.png', key='image')],
+            ]
+
+right_col_2 = [[sg.Text('Ft_otp Token:', font = ("italic",18))],
+            [sg.Text('------', key = 'otp_token', font = ("italic",60), relief='solid', text_color='white')],
+            [sg.Text(pad=(0,3))],
+            [sg.Text('Pyotp Token:', font = ("italic",18))],
+            [sg.Text('------', key = 'pyotp_token', font = ("italic",40), relief='solid', text_color='white')]
+            ]
+
+layout = [  [sg.Text('Time-based One-time Password generator', font = ("italic",50), justification="center", text_color = "yellow")],
+            [sg.Text(pad=(0,5))],
+            [sg.Column(left_col_1, vertical_alignment='top'),
+             sg.VerticalSeparator(pad=10), 
+             sg.Column(right_col_1, vertical_alignment='top')],
+            [sg.Column(left_col_2),
+             sg.Text(size=(20)), 
+             sg.Column(right_col_2)],
+            [sg.Text(size=(5))],
+            [sg.Text('', key='text_key', size=(60,3), font = ("italic",10), visible=False, text_color="white")],
+            [sg.VPush()],
+            [sg.Button('Exit', font = ("italic",20), size=10)] 
+            ]
+
+
 def is_hex(text):
     try:
         int(text, 16)
@@ -36,9 +97,8 @@ def pyotp_value(key_given, passw):
         key = f.read()
     key_dec = decrypt_key(key, passw)
     key_b32 = (base64.b32encode(key_dec)).decode('utf-8')
-    img = qrcode.make("key_b32")
-    img.save('MyQRCode.png')
     totp = pyotp.TOTP(key_b32, interval=30, digits=6)
+    window['pyotp_token'].update(f"{totp.now()}")
     print(f"pyotp:  {totp.now()}")
 
 def encrypt_key(key, passw):
@@ -61,52 +121,75 @@ class Otp:
     def __init__(self,args):
         self.hex_key = args.hex_key
         self.otp_key = args.otp_key
+        self.passw_enc = None
+        self.passw_dec = None
+        self.key_dec = None
+        self.name = None
+        self.account = None
 
     def save_key(self):
         try:
             key = open(self.hex_key, "rb").read()
         except:
-            raise Exception("Invalid Key")
+            window['save_key_result'].update('Invalid Key', visible=True, text_color='red')
+            print("Invalid Key")
+            #raise Exception("Invalid Key")
         else:
             if is_hex(key) and len(key) >= 64:
-                passw = Generate_key(getpass.getpass("Create your password: "))     
+                #passw = Generate_key(getpass.getpass("Create your password: "))
+                passw = Generate_key(otp.passw_enc)   
                 key_enc = encrypt_key(key, passw)
                 try:
                     with open("ft_otp.key", "wb") as otp_key:
                         otp_key.write(key_enc)
-                    print("Key was successfully saved in ft_otp.key.")
+                    otp_path = os.path.abspath('ft_otp.key')
+                    window['save_key_result'].update(f'Key was successfully saved', visible=True, text_color='green')
+                    print(f"Key was successfully saved in {otp_path}")
                 except:
-                    raise Exception("Key could not be saved")
+                    window['generate_key_result'].update('Key could not be saved', visible=True, text_color='red')
+                    print("Key could not be saved")
+                    #raise Exception("Key could not be saved")
             else:
-                raise Exception("Key must be 64 hexadecimal characters")
+                window['save_key_result'].update('Key must be 64 hexadecimal characters', visible=True, text_color='red')
+                print(("Key must be 64 hexadecimal characters"))
+                #raise Exception("Key must be 64 hexadecimal characters")
 
-    def generate_password(self):
-        passw = Generate_key(getpass.getpass("Enter your password: "))
-        with open(self.otp_key, "rb") as f:
-            try:
+    def generate_password(self, passw):
+        #passw = Generate_key(getpass.getpass("Enter your password: "))
+        try:
+            with open(self.otp_key, "rb") as f:
                 key = f.read()
+        except:
+            window['generate_token_result'].update('Key not found', visible=True, text_color='red')
+            print("Key not found")
+            #Exception("Key not found")
+        else:
+            try:
+                key_dec = decrypt_key(key, passw)
             except:
-                Exception("Key not found")
+                window['generate_token_result'].update('Password not correct', visible=True, text_color='red')
+                window['otp_token'].update("------")
+                window['pyotp_token'].update("------")
+                print("Password not correct")
             else:
-                try:
-                    key_dec = decrypt_key(key, passw)
-                except:
-                    print("Password not correct")
-                    exit()
-        counter = (int(time.time() / 30))
-        counter_bytes = counter.to_bytes(8, byteorder="big")
-        hmac_sha1 = hmac.new(key_dec, counter_bytes, hashlib.sha1).digest()
-        offset = hmac_sha1[-1] & 0x0F
-        otp_bytes = hmac_sha1[offset:offset+4]
-        otp_int = int.from_bytes(otp_bytes, byteorder="big") + 0x7FFFFFFF
-        otp_int = ((hmac_sha1[offset]  & 0x7f) << 24 |
-            (hmac_sha1[offset+1] & 0xff) << 16 | 
-            (hmac_sha1[offset+2] & 0xff) <<  8 | 
-            (hmac_sha1[offset+3] & 0xff))
-        otp = otp_int % (10 ** 6)
-        print(f"ft_otp: {otp:06d}")
-        return passw
-
+                counter = (int(time.time() / 30))
+                counter_bytes = counter.to_bytes(8, byteorder="big")
+                hmac_sha1 = hmac.new(key_dec, counter_bytes, hashlib.sha1).digest()
+                offset = hmac_sha1[-1] & 0x0F
+                otp_int = ((hmac_sha1[offset]  & 0x7f) << 24 |
+                    (hmac_sha1[offset+1] & 0xff) << 16 | 
+                    (hmac_sha1[offset+2] & 0xff) <<  8 | 
+                    (hmac_sha1[offset+3] & 0xff))
+                otp = otp_int % (10 ** 6)
+                window['generate_token_result'].update('Token created', visible=True, text_color='green')
+                window['otp_token'].update(f"{otp:06d}")
+                print(f"ft_otp: {otp:06d}")
+                pyotp_value(self.otp_key, passw)
+                complete_key = f"otpauth://totp/{self.name}:{self.account}?secret={base64.b32encode(key_dec).decode()}&issuer={self.name}"
+                window['text_key'].update(f"Key: {complete_key}", visible=True)
+                img = qrcode.make(complete_key)
+                img.save('otp_qr.png')
+                window['image'].update(filename='otp_qr.png', subsample=2)
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -118,12 +201,27 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     otp = Otp(args)
-    if otp.hex_key:
-        otp.save_key()
-    if otp.otp_key:
-        passw = otp.generate_password()
-        pyotp_value(otp.otp_key, passw)
+    print("Launching Graphical Interface")
+    # Create the Window
+    window = sg.Window('ft_otp', layout, size=(950,1100), margins = (20, 20), element_justification='c')
+    # Event Loop to process "events" and get the "values" of the inputs
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED or event == 'Exit': # if user closes window or clicks cancel
+            break
+        elif event == 'Save Key':
+            otp.hex_key = values['hex_key']
+            otp.passw_enc = values['passw_enc']
+            otp.save_key()
+        elif event == 'Create Token':
+            otp.otp_key = values['otp_key']
+            otp.passw_dec = values['passw_dec']
+            otp.name = values['name']
+            otp.account = values['account']
+            passw = Generate_key(otp.passw_dec)
+            otp.generate_password(passw)
 
+    window.close()
     
     
 
